@@ -1,0 +1,28 @@
+# CivicPulse Backend — Production Dependencies
+# Pin minor versions for reproducible builds
+
+# Web framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# LLM inference API used by the current backend
+groq>=0.11,<1
+# SDK retained by original project
+google-genai==0.8.0
+
+# Firebase
+firebase-admin==6.6.0
+
+# Config / validation
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
+
+# HTTP
+httpx==0.27.2
+
+# Multipart (image uploads)
+python-multipart==0.0.17
+
+# Image handling
+pillow==11.0.0

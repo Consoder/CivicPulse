@@ -1,68 +1,105 @@
-# CivicPulse — Agentic Civic Issue Triage
+# CivicPulse — AI-Assisted Civic Issue Triage
 
-**CivicPulse** is a hackathon-built civic-issue reporting prototype using a multi-turn Gemini tool-calling pipeline to classify reports, check duplicates, prioritize municipal issues, route them to departments, and summarize insights.
+> **Hackathon prototype** · FastAPI + React + Leaflet + Firebase · LLM-based civic issue triage
 
-> **Status:** Hackathon prototype tested locally; not a verified public cloud deployment or integrated municipal production system.
+CivicPulse helps residents report civic issues and helps municipal teams categorize, prioritize and route reports. The proof of concept combines a React map interface, FastAPI APIs, Firebase integrations and a structured five-stage AI analysis response.
 
-## Problem
+**Development status:** Source published for review and local reproduction. The repo does **not** establish a verified public/cloud production deployment.
 
-Citizen reports are unstructured, can describe overlapping incidents, and need prioritization and routing. CivicPulse demonstrates explainable AI-assisted triage while preserving the role of human municipal decision makers.
+## What is implemented
 
-## Technology
+- **Issue classification / quality context:** classify reported issues using supplied images and text, with structured response models.
+- **Duplicate indication:** compare reports against provided nearby issue records.
+- **Priority scoring:** produce structured severity signals and recommendations.
+- **Routing and briefing:** suggest departments and generate operational summaries.
+- **Issue workflows:** FastAPI routers for issues, votes, users and AI analysis.
+- **Mapping:** React + Leaflet visualization; Firebase Auth/Firestore integration paths.
+- **Demo fallback:** `DEMO_MODE=true` serves mock AI responses and stores data in memory, without external API calls.
 
-| Layer | Stack |
-|---|---|
-| AI workflow | Gemini 2.0 Flash, multi-turn function calling, five tools |
-| Backend | Python, FastAPI |
-| Frontend | React, Leaflet |
-| Identity | Firebase Authentication |
-| Deployment preparation | Docker / Cloud Build configuration |
+### Important technical clarification
 
-## Five-tool workflow
+The original design documents describe **Gemini 2.0 Flash and five agents**. The provided code currently invokes **Groq (Llama-4-Scout)** with one multimodal prompt that asks for **five structured reasoning stages**, then validates its response with Pydantic. **It is not five autonomous agents with separate LLM tool calls.** Local demo mode returns mock responses rather than running the live model. This README describes the code, not the earlier proposed architecture.
 
-1. **Classify incidents** based on report evidence.
-2. **Check duplicates** among nearby/existing issue records.
-3. **Calculate priority** using issue context.
-4. **Route departments** for follow-up.
-5. **Generate mayor insights** for an operational briefing.
+## Architecture
 
 ```mermaid
 flowchart LR
-    A[Resident report] --> B[FastAPI]
-    B --> C[Gemini tool-calling loop]
-    C --> D[Classify]
-    D --> E[Duplicate check]
-    E --> F[Prioritize]
-    F --> G[Department routing]
-    G --> H[Mayor insights]
-    H --> I[Tool trace + response]
-    I --> J[React / Leaflet]
+  A[Resident report] --> B[React + Leaflet]
+  B --> C[FastAPI backend]
+  C --> D{Demo mode?}
+  D -- Yes --> E[Mock AI response]
+  D -- No --> F[Groq Llama-4-Scout multimodal inference]
+  E --> G[Pydantic structured five-stage response]
+  F --> G
+  G --> H[Categories + duplication + priority + routing + insights]
+  C --> I{Demo mode?}
+  I -- Yes --> J[In-memory issue storage]
+  I -- No --> K[Firebase Firestore]
 ```
 
-## Implementation status
+## Stack
 
-- Implemented a multi-turn, five-tool Gemini workflow.
-- Integrated React/Leaflet, FastAPI, and Firebase Auth in the prototype.
-- Verified nine local API routes during development.
-- Prepared deployment configuration; **no verified live production deployment**.
+| Layer | Technology |
+|---|---|
+| Web | React 18, Vite, Tailwind CSS, Zustand, React-Leaflet, Recharts |
+| Backend | Python, FastAPI, Pydantic |
+| AI (current source) | Groq API with Llama-4-Scout; structured JSON output / fallback |
+| Data / Auth | Firebase/Firestore/Auth; in-memory demo mode |
+| Developer tooling | Docker, Docker Compose, Cloud Build configuration |
 
-## Source code and reproducibility
+## Quick start
 
-**Source upload pending.** This README documents the existing project and does not represent the full source tree. The original frontend and backend files must be uploaded before this repository can be built or run by others.
+**Requirements:** Python 3.12+, Node.js 20+ and npm.
 
-The expected working source is the original CivicPulse project, not a newly generated demonstration substituted for the original.
+1. Clone:
 
-Once published, add exact commands from the backend manifest and frontend `package.json`, environment-variable names, screenshots, and reproduced tests. Do not commit API keys, service-account secrets, or real citizen data.
+```bash
+git clone https://github.com/Consoder/CivicPulse.git
+cd CivicPulse
+```
 
-## Security / limitations
+2. Backend in mock/demo mode:
 
-This prototype is a decision-support tool. Issue classification, duplicate detection, priority scores and routing require human validation before operational use. A visible tool trace aids debugging but is not a guarantee of accuracy. No public cloud deployment or multi-tenant guarantees are claimed.
+```bash
+cd backend
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env      # Windows: copy .env.example .env
+uvicorn app.main:app --reload
+```
 
-## Next milestones
+Backend Swagger: `http://localhost:8000/docs`, health endpoint: `http://localhost:8000/health`.
 
-- Publish and audit the original source tree
-- Document local setup and add reproducible unit/integration tests
-- Add persistence, human-in-the-loop review, and harden permissions
-- Deploy and verify a real demonstration environment
+3. Frontend (in a second terminal):
 
-Maintainer: [Consoder](https://github.com/Consoder).
+```bash
+cd frontend
+npm ci
+cp .env.example .env.local   # Windows: copy .env.example .env.local
+npm run dev
+```
+
+Visit `http://localhost:5173`. Firebase sign-in features require your own valid **Firebase Web App** configuration; placeholders are not functional credentials. In-memory demo backend mode does not require a live database.
+
+## Original source files
+
+- `backend/app/main.py` — FastAPI application and health endpoint
+- `backend/app/routers/` — AI, issues, votes, users
+- `backend/app/services/civic_intelligence_engine.py` — five-stage structured response and inference
+- `backend/app/services/firebase_service.py` — Firebase or local demo data service
+- `frontend/src/` — React screens, components, API clients, hooks, state
+- `cloudbuild.yaml` — deployment preparation/configuration, not proof of a live deployment
+- `architecture.md` and `brain.md` — original design/reference documents; may describe *planned* features
+
+## Safety and limitations
+
+- **No credentials committed.** The supplied archive contained `backend/.env`, `frontend/.env.local`, and `backend/serviceAccountKey.json`; these are intentionally excluded from this public source package. Rotate any exposed keys if they have been published elsewhere.
+- Demo mode uses mock data and is **not** evidence of model inference quality or production readiness.
+- AI classifications and priorities are decision-support outputs requiring human review.
+- Cloud Run / Cloud Build configurations do not mean the application was deployed to a public endpoint.
+
+## Maintainer
+
+[Consoder](https://github.com/Consoder)
