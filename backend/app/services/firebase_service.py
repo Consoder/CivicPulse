@@ -195,11 +195,11 @@ async def create_issue(payload: IssueCreate, reporter_uid: str) -> IssueOut:
 async def get_issue(issue_id: str) -> Optional[IssueOut]:
     if DEMO_MODE:
         d = _issues.get(issue_id)
-        return _dict_to_issue(d) if d else None
+        return _dict_to_issue(d) if d and d.get("status") != "DELETED" else None
     db = get_db()
-    from google.cloud.firestore_v1 import DocumentSnapshot
     doc = db.collection(COL_ISSUES).document(issue_id).get()
-    if not doc.exists: return None
+    if not doc.exists or (doc.to_dict() or {}).get("status") == "DELETED":
+        return None
     return _dict_to_issue({"id": doc.id, **doc.to_dict()})
 
 
@@ -211,7 +211,7 @@ async def list_issues(
     page_size: int = 20,
 ) -> IssueListResponse:
     if DEMO_MODE:
-        items = list(_issues.values())
+        items = [i for i in _issues.values() if i.get("status") != "DELETED"]
         if status:     items = [i for i in items if i.get("status") == status]
         if category:   items = [i for i in items if i.get("category") == category]
         if department: items = [i for i in items if i.get("department") == department]
@@ -228,7 +228,7 @@ async def list_issues(
     if category:   q = q.where("category", "==", category)
     if department: q = q.where("department", "==", department)
     q = q.order_by("createdAt", direction=fs.Query.DESCENDING)
-    all_docs = list(q.stream())
+    all_docs = [d for d in q.stream() if (d.to_dict() or {}).get("status") != "DELETED"]
     total = len(all_docs)
     paged = all_docs[(page-1)*page_size: page*page_size]
     items = [_dict_to_issue({"id": d.id, **d.to_dict()}) for d in paged if d.exists]
