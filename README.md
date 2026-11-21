@@ -1,10 +1,16 @@
 # CivicPulse — AI-Assisted Civic Issue Triage
 
+[![CivicPulse CI](https://github.com/Consoder/CivicPulse/actions/workflows/ci.yml/badge.svg)](https://github.com/Consoder/CivicPulse/actions/workflows/ci.yml)
+[![Browser Integration](https://github.com/Consoder/CivicPulse/actions/workflows/browser-smoke.yml/badge.svg)](https://github.com/Consoder/CivicPulse/actions/workflows/browser-smoke.yml)
+
+
 > **Hackathon prototype** · FastAPI + React + Leaflet + Firebase · LLM-based civic issue triage
 
 CivicPulse helps residents report civic issues and helps municipal teams categorize, prioritize and route reports. The proof of concept combines a React map interface, FastAPI APIs, Firebase integrations and a structured five-stage AI analysis response.
 
 **Development status:** Source published for review and local reproduction. The repo does **not** establish a verified public/cloud production deployment.
+
+**Verified 21 Nov 2026:** GitHub CI passed Python demo-mode API integration tests and the React production build. A separate clean-run Chromium browser test confirmed the React page renders, the report button is present and the API returns five demo issues without JavaScript page errors. **A public cloud deployment, real Groq calls and Firebase integrations remain unverified.** See [the verification report](docs/DEPLOYMENT_VERIFICATION.md).
 
 ## What is implemented
 
