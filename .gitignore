@@ -1,0 +1,23 @@
+# Secret material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*serviceAccount*.json
+firebase-adminsdk*.json
+# Node / JS
+node_modules/
+dist/
+build/
+.next/
+coverage/
+# Python
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+# Local files
+.DS_Store
+*.log
